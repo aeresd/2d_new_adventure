@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>像素冒险小游戏</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 游戏主容器 -->
+    <div id="game-container">
+        <!-- 游戏内容缩放容器 -->
+        <div class="game-content">
+            <!-- 游戏画布 -->
+            <canvas id="game-canvas" width="1920" height="1080"></canvas>
+        
+        <!-- 主界面 -->
+        <div id="main-menu" class="screen active">
+            <div class="menu-container">
+                <h1 class="game-title">像素冒险</h1>
+                <div class="button-container">
+                    <button id="start-game-btn" class="menu-button">开始游戏</button>
+                    <button id="continue-game-btn" class="menu-button">继续游戏</button>
+                    <button id="exit-game-btn" class="menu-button">退出游戏</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关卡选择界面 -->
+        <div id="level-select" class="screen">
+            <div class="level-container">
+                <!-- 地图背景 -->
+                <div class="map-background">
+                    <img src="map_select/tiny_base.png" alt="地图背景" class="map-bg">
+                    
+                    <!-- 关卡图标容器 -->
+                    <div class="level-icons">
+                        <!-- 六边形木质堡垒村庄（左中） -->
+                        <div class="level-icon" data-level="1" style="left: 22%; top: 60%;">
+                            <img src="map_select/tiny_map_1.png" alt="关卡1">
+                            <span class="level-name">村庄堡垒</span>
+                        </div>
+                        <!-- 圆形森林村庄（左下） -->
+                        <div class="level-icon" data-level="2" style="left: 33%; top: 52%;">
+                            <img src="map_select/tiny_map_2.png" alt="关卡2">
+                            <span class="level-name">森林村庄</span>
+                        </div>
+                        <!-- 方形军事营地/哨站（中上） -->
+                        <div class="level-icon" data-level="3" style="left: 52%; top: 48%;">
+                            <img src="map_select/tiny_map_3.png" alt="关卡3">
+                            <span class="level-name">军事哨站</span>
+                        </div>
+                        <!-- 长城段（中右） -->
+                        <div class="level-icon" data-level="4" style="left: 63%; top: 58%;">
+                            <img src="map_select/tiny_map_4.png" alt="关卡4">
+                            <span class="level-name">长城防线</span>
+                        </div>
+                        <!-- 石桥（右上） -->
+                        <div class="level-icon" data-level="5" style="left: 68%; top: 50%;">
+                            <img src="map_select/tiny_map_5.png" alt="关卡5">
+                            <span class="level-name">石桥通道</span>
+                        </div>
+                        <!-- 大型城堡（右侧） -->
+                        <div class="level-icon" data-level="6" style="left: 78%; top: 58%;">
+                            <img src="map_select/tiny_map_6.png" alt="关卡6">
+                            <span class="level-name">主城城堡</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 返回按钮 -->
+                <button id="back-to-menu-btn" class="back-button">返回主菜单</button>
+            </div>
+        </div>
+
+        <!-- 关卡详情弹窗 -->
+        <div id="level-popup" class="popup-overlay">
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h2 id="popup-title">关卡详情</h2>
+                    <button id="close-popup-btn" class="close-btn">&times;</button>
+                </div>
+                <div class="popup-body">
+                    <div class="level-preview">
+                        <img id="popup-level-img" src="" alt="关卡预览">
+                    </div>
+                    <div class="level-info">
+                        <h3 id="popup-level-name">关卡名称</h3>
+                        <p id="popup-level-desc">关卡描述信息...</p>
+                        <div class="level-stats">
+                            <div class="stat-item enemies-info">
+                                <span class="stat-label">可能出现敌人:</span>
+                                <div id="popup-enemies" class="enemies-list">敌人信息</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="popup-footer">
+                    <button id="confirm-level-btn" class="confirm-button">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关卡场景界面 -->
+        <div id="level-scene" class="screen">
+            <!-- 暂停按钮 -->
+            <div id="pause-button" class="pause-button">
+                <span>⏸️</span>
+            </div>
+            
+            <div class="level-scene-container">
+                <!-- 关卡背景 -->
+                <div class="level-background">
+                    <img id="level-bg-img" src="" alt="关卡背景" class="level-bg-image">
+                </div>
+                
+                <!-- 天空背景层 -->
+                <div id="sky-background" class="sky-background">
+                    <img src="campaign/tiny_map4_sky.png" alt="天空背景1" class="sky-bg-image sky-bg-1">
+                    <img src="campaign/tiny_map4_sky.png" alt="天空背景2" class="sky-bg-image sky-bg-2">
+                </div>
+                
+                <!-- 地面线条 -->
+                <div id="ground-line" class="ground-line"></div>
+                
+                <!-- 玩家和敌人 -->
+                <div id="player" class="character player-character">
+                    <!-- 玩家血条 -->
+                    <div class="health-bar player-health-bar">
+                        <div class="health-bar-bg">
+                            <div id="player-health-fill" class="health-bar-fill player-health-fill">
+                                <span id="player-health-text" class="health-bar-text">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="character-body"></div>
+                    <div class="character-label">玩家</div>
+                </div>
+                
+                <!-- 友一角色 -->
+                <div id="ally-one" class="character ally-character">
+                    <div class="character-body"></div>
+                    <div class="character-label">友一</div>
+                    <div class="ally-counter">
+                        <span id="ally-count">x0</span>
+                    </div>
+                </div>
+                
+                <!-- 友二角色 -->
+                <div id="ally-two" class="character ally-two-character">
+                    <div class="character-body"></div>
+                    <div class="character-label">友二</div>
+                    <div class="ally-two-counter">
+                        <span id="ally-two-count">x0</span>
+                    </div>
+                </div>
+                
+                <!-- 友三角色 -->
+                <div id="ally-three" class="character ally-three-character">
+                    <div class="character-body"></div>
+                    <div class="character-label">友三</div>
+                    <div class="ally-three-counter">
+                        <span id="ally-three-count">x0</span>
+                    </div>
+                </div>
+                
+                <div id="enemy" class="character enemy-character">
+                    <div class="character-body"></div>
+                    <div class="character-label">敌人</div>
+                </div>
+                
+                <!-- 未知处（重生点） -->
+                <div id="unknown-spawn" class="character unknown-spawn">
+                    <div class="character-body"></div>
+                    <div class="character-label">未知处</div>
+                    <div class="respawn-counter">
+                        <span id="respawn-count">x1</span>
+                    </div>
+                </div>
+                
+                <!-- 敌人血条（屏幕居中上方） -->
+                <div id="enemy-health-bar" class="health-bar enemy-health-bar">
+                    <div class="health-bar-bg">
+                        <div id="enemy-health-fill" class="health-bar-fill enemy-health-fill">
+                            <span id="enemy-health-text" class="health-bar-text">100%</span>
+                        </div>
+                    </div>
+                    <!-- 倒计时线 -->
+                    <div id="enemy-countdown-line" class="countdown-line">
+                        <div id="countdown-progress" class="countdown-progress"></div>
+                    </div>
+                </div>
+                
+                <!-- 统一底部UI元素 -->
+                <div class="ui-base-overlay">
+                    <img src="campaign/tiny_ui_base_only.png" alt="UI底部元素" class="ui-base-img">
+                    
+                    <!-- 倒计时进度条容器 -->
+                    <div id="timer-container" class="timer-container">
+                        <div class="timer-progress-bar">
+                            <div id="timer-progress" class="timer-progress-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 输入条按键容器 -->
+                    <div id="input-keys-container" class="input-keys-container">
+                        <!-- 动态生成的按键将在这里显示 -->
+                    </div>
+                </div>
+                
+                <!-- 关卡信息和控制按钮 -->
+                <div class="level-ui">
+                    <div class="level-info">
+                        <h2 id="level-scene-title">关卡名称</h2>
+                        <p id="level-scene-desc">关卡描述</p>
+                    </div>
+                    <div class="level-controls">
+                        <button id="back-to-level-select" class="back-button">返回关卡选择</button>
+                        <button id="start-level" class="start-button">开始关卡</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 暂停菜单 -->
+            <div id="pause-menu" class="pause-menu-overlay">
+                <div class="pause-menu-content">
+                    <h2>游戏暂停</h2>
+                    <div class="pause-menu-buttons">
+                        <button id="resume-game-btn" class="pause-menu-button resume">继续游戏</button>
+                        <button id="back-to-levels-from-pause-btn" class="pause-menu-button back">返回关卡选择</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- 胜利弹窗 -->
+    <div id="victory-popup" class="popup-overlay">
+        <div class="victory-content">
+            <div class="victory-header">
+                <h2 id="victory-title">胜利！</h2>
+            </div>
+            <div class="victory-body">
+                <div class="victory-icon">🏆</div>
+                <h3 id="victory-level-name">关卡完成</h3>
+                <p id="victory-message">恭喜您成功击败了所有敌人！</p>
+                <div class="victory-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">最高连击：</span>
+                        <span id="victory-combo" class="stat-value">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="victory-footer">
+                <button id="next-level-btn" class="victory-button next-level">下一关</button>
+                <button id="back-to-levels-btn" class="victory-button back-to-levels">返回关卡选择</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 存档覆盖确认弹窗 -->
+    <div id="save-overwrite-popup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2>存档覆盖确认</h2>
+            </div>
+            <div class="popup-body">
+                <p>检测到已有存档，开始新游戏将会覆盖当前存档。</p>
+                <p>是否继续？</p>
+            </div>
+            <div class="popup-footer">
+                <button id="confirm-overwrite-btn" class="popup-button confirm">确认覆盖</button>
+                <button id="cancel-overwrite-btn" class="popup-button cancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 村庄堡垒队伍编辑弹窗 -->
+    <div id="village-fortress-popup" class="popup-overlay">
+        <div class="village-fortress-content">
+            <div class="village-fortress-header">
+                <h2>村庄堡垒 - 队伍编辑器</h2>
+                <button id="close-village-fortress-btn" class="close-button">×</button>
+            </div>
+            <div class="village-fortress-body">
+                <div class="team-editor">
+                    <div class="team-member">
+                        <div class="member-info">
+                            <div class="member-avatar archer-avatar"></div>
+                            <div class="member-details">
+                                <h3>弓手</h3>
+                                <p>远程攻击单位，擅长精准射击</p>
+                                <p class="bonus-text">加成：每有一个增加35%投射物伤害</p>
+                            </div>
+                        </div>
+                        <div class="member-controls">
+                            <button class="decrease-btn" data-member="archer">-</button>
+                            <span class="member-count" id="archer-count">1</span>
+                            <button class="increase-btn" data-member="archer">+</button>
+                            <span class="inventory-count">库存: <span id="archer-inventory">1</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="member-info">
+                            <div class="member-avatar villager-avatar"></div>
+                            <div class="member-details">
+                                <h3>村民</h3>
+                                <p>支援单位，提供后勤保障</p>
+                                <p class="bonus-text">加成：每有一个增加20%玩家血量</p>
+                            </div>
+                        </div>
+                        <div class="member-controls">
+                            <button class="decrease-btn" data-member="villager">-</button>
+                            <span class="member-count" id="villager-count">1</span>
+                            <button class="increase-btn" data-member="villager">+</button>
+                            <span class="inventory-count">库存: <span id="villager-inventory">1</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="member-info">
+                            <div class="member-avatar knight-avatar"></div>
+                            <div class="member-details">
+                                <h3>骑士</h3>
+                                <p>近战单位，拥有强大的防御力</p>
+                                <p class="bonus-text">加成：每有一个反弹20%所受伤害给敌人</p>
+                            </div>
+                        </div>
+                        <div class="member-controls">
+                            <button class="decrease-btn" data-member="knight">-</button>
+                            <span class="member-count" id="knight-count">1</span>
+                            <button class="increase-btn" data-member="knight">+</button>
+                            <span class="inventory-count">库存: <span id="knight-inventory">1</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="team-summary">
+                    <h3>队伍总览</h3>
+                    <p>总人数: <span id="total-team-count">3</span></p>
+                </div>
+            </div>
+            <div class="village-fortress-footer">
+                <button id="save-team-btn" class="village-fortress-button save-team">保存队伍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入游戏模块 -->
+    <script src="js/saveManager.js"></script>
+    <script src="js/gameManager.js"></script>
+    <script src="js/mainMenu.js"></script>
+    <script src="js/villageFortress.js"></script>
+    <script src="js/levelSelect.js"></script>
+    <script src="js/popup.js"></script>
+    <script src="js/victoryPopup.js"></script>
+    <script src="js/inputSystem.js"></script>
+    <script src="js/collisionSystem.js"></script>
+    <script src="js/projectileSystem.js"></script>
+    <script src="js/pauseMenu.js"></script>
+    <script src="js/audioManager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敌人受击效果测试</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #2c1810;
+            color: #f4e4bc;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #8b4513;
+            background: linear-gradient(135deg, #3d2817 0%, #2c1810 100%);
+            margin: 20px auto;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .test-button {
+            background: linear-gradient(145deg, #8b4513, #654321);
+            border: 2px solid #a0522d;
+            color: #f4e4bc;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-button:hover {
+            background: linear-gradient(145deg, #a0522d, #8b4513);
+            transform: translateY(-2px);
+        }
+        
+        .info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .debug-info {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>敌人受击效果测试</h1>
+    
+    <div class="info">
+        <h3>测试说明：</h3>
+        <ul>
+            <li>这个测试页面使用与主游戏相同的CSS样式</li>
+            <li>点击"触发敌人受击"按钮测试效果</li>
+            <li>观察敌人矩形模型的抖动和变白闪烁效果</li>
+            <li>效果包括：多方向抖动 + 变白闪烁</li>
+        </ul>
+    </div>
+    
+    <div class="controls">
+        <button class="test-button" onclick="triggerEnemyHit()">触发敌人受击</button>
+        <button class="test-button" onclick="clearDebugInfo()">清除调试信息</button>
+    </div>
+    
+    <div class="test-container">
+        <!-- 使用与主游戏相同的HTML结构 -->
+        <div id="enemy" class="character enemy-character">
+            <div class="character-body"></div>
+            <div class="character-label">敌人</div>
+        </div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>调试信息：</h3>
+        <div id="debugInfo">点击"触发敌人受击"按钮开始测试</div>
+    </div>
+
+    <script>
+        let hitCount = 0;
+        
+        // 触发敌人受击效果
+        function triggerEnemyHit() {
+            const enemyElement = document.getElementById('enemy');
+            if (enemyElement) {
+                hitCount++;
+                
+                // 添加hit类触发动画
+                enemyElement.classList.add('hit');
+                
+                // 0.6秒后移除hit类
+                setTimeout(() => {
+                    enemyElement.classList.remove('hit');
+                }, 600);
+                
+                logDebug(`第 ${hitCount} 次触发敌人受击效果`);
+                logDebug(`敌人元素类名: ${enemyElement.className}`);
+                logDebug(`敌人body元素类名: ${enemyElement.querySelector('.character-body').className}`);
+            } else {
+                logDebug('错误：找不到敌人元素');
+            }
+        }
+        
+        // 清除调试信息
+        function clearDebugInfo() {
+            document.getElementById('debugInfo').innerHTML = '调试信息已清除';
+            hitCount = 0;
+        }
+        
+        // 输出调试信息
+        function logDebug(message) {
+            const debugDiv = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+        
+        // 初始化
+        logDebug('敌人受击效果测试页面已加载');
+        logDebug('使用与主游戏相同的CSS样式和HTML结构');
+    </script>
+</body>
+</html>
+
+
+
+

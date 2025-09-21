@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>碰撞检测测试</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            z-index: 2000;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-controls button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .test-controls button:hover {
+            background: #357abd;
+        }
+        
+        .status-display {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .collision-info {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .no-collision {
+            color: #51cf66;
+        }
+    </style>
+</head>
+<body>
+    <!-- 测试控制面板 -->
+    <div class="test-controls">
+        <h3>碰撞检测测试</h3>
+        <button onclick="toggleDebug()">切换调试模式</button>
+        <button onclick="toggleCollision()">切换碰撞检测</button>
+        <button onclick="movePlayerLeft()">玩家左移</button>
+        <button onclick="movePlayerRight()">玩家右移</button>
+        <button onclick="moveEnemyLeft()">敌人左移</button>
+        <button onclick="moveEnemyRight()">敌人右移</button>
+        <button onclick="resetPositions()">重置位置</button>
+        
+        <div class="status-display" id="status-display">
+            <div>碰撞检测: <span id="collision-status">检测中...</span></div>
+            <div>调试模式: <span id="debug-status">关闭</span></div>
+            <div>玩家位置: <span id="player-pos">-</span></div>
+            <div>敌人位置: <span id="enemy-pos">-</span></div>
+        </div>
+    </div>
+
+    <!-- 游戏主容器 -->
+    <div id="game-container">
+        <!-- 游戏内容缩放容器 -->
+        <div class="game-content">
+            <!-- 关卡场景界面 -->
+            <div id="level-scene" class="screen active">
+                <div class="level-scene-container">
+                    <!-- 关卡背景 -->
+                    <div class="level-background">
+                        <img id="level-bg-img" src="campaign/tiny_map1.png" alt="关卡背景" class="level-bg-image">
+                    </div>
+                    
+                    <!-- 地面线条 -->
+                    <div id="ground-line" class="ground-line"></div>
+                    
+                    <!-- 玩家和敌人 -->
+                    <div id="player" class="character player-character">
+                        <!-- 玩家血条 -->
+                        <div class="health-bar player-health-bar">
+                            <div class="health-bar-bg">
+                                <div id="player-health-fill" class="health-bar-fill player-health-fill">
+                                    <span id="player-health-text" class="health-bar-text">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="character-body"></div>
+                    </div>
+                    
+                    <div id="enemy" class="character enemy-character">
+                        <div class="character-body"></div>
+                    </div>
+                    
+                    <!-- 敌人血条（屏幕居中上方） -->
+                    <div id="enemy-health-bar" class="health-bar enemy-health-bar">
+                        <div class="health-bar-bg">
+                            <div id="enemy-health-fill" class="health-bar-fill enemy-health-fill">
+                                <span id="enemy-health-text" class="health-bar-text">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入游戏模块 -->
+    <script src="js/gameManager.js"></script>
+    <script src="js/mainMenu.js"></script>
+    <script src="js/levelSelect.js"></script>
+    <script src="js/popup.js"></script>
+    <script src="js/inputSystem.js"></script>
+    <script src="js/collisionSystem.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // 等待游戏初始化完成
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                // 启用调试模式
+                GameAPI.setCollisionDebug(true);
+                updateStatus();
+                
+                // 开始碰撞检测循环
+                startCollisionLoop();
+            }, 1000);
+        });
+        
+        // 碰撞检测循环
+        function startCollisionLoop() {
+            setInterval(() => {
+                const isColliding = GameAPI.checkCollision();
+                updateStatus();
+            }, 100);
+        }
+        
+        // 更新状态显示
+        function updateStatus() {
+            const status = GameAPI.getCollisionStatus();
+            const debugMode = GameAPI.getModule('collisionSystem').debugMode;
+            
+            document.getElementById('collision-status').textContent = 
+                status.isColliding ? '碰撞!' : '无碰撞';
+            document.getElementById('collision-status').className = 
+                status.isColliding ? 'collision-info' : 'no-collision';
+            
+            document.getElementById('debug-status').textContent = 
+                debugMode ? '开启' : '关闭';
+            
+            if (status.player) {
+                document.getElementById('player-pos').textContent = 
+                    `(${Math.round(status.player.x)}, ${Math.round(status.player.y)})`;
+            }
+            
+            if (status.enemy) {
+                document.getElementById('enemy-pos').textContent = 
+                    `(${Math.round(status.enemy.x)}, ${Math.round(status.enemy.y)})`;
+            }
+        }
+        
+        // 控制函数
+        function toggleDebug() {
+            const collisionSystem = GameAPI.getModule('collisionSystem');
+            const newDebugMode = !collisionSystem.debugMode;
+            GameAPI.setCollisionDebug(newDebugMode);
+            updateStatus();
+        }
+        
+        function toggleCollision() {
+            const collisionSystem = GameAPI.getModule('collisionSystem');
+            const newCollisionEnabled = !collisionSystem.collisionEnabled;
+            GameAPI.setCollisionEnabled(newCollisionEnabled);
+            updateStatus();
+        }
+        
+        function movePlayerLeft() {
+            const player = document.getElementById('player');
+            const currentLeft = parseFloat(player.style.left) || 15;
+            player.style.left = Math.max(5, currentLeft - 5) + '%';
+        }
+        
+        function movePlayerRight() {
+            const player = document.getElementById('player');
+            const currentLeft = parseFloat(player.style.left) || 15;
+            player.style.left = Math.min(40, currentLeft + 5) + '%';
+        }
+        
+        function moveEnemyLeft() {
+            const enemy = document.getElementById('enemy');
+            const currentRight = parseFloat(enemy.style.right) || 15;
+            enemy.style.right = Math.min(40, currentRight + 5) + '%';
+        }
+        
+        function moveEnemyRight() {
+            const enemy = document.getElementById('enemy');
+            const currentRight = parseFloat(enemy.style.right) || 15;
+            enemy.style.right = Math.max(5, currentRight - 5) + '%';
+        }
+        
+        function resetPositions() {
+            document.getElementById('player').style.left = '15%';
+            document.getElementById('enemy').style.right = '15%';
+        }
+    </script>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投射物测试 - 敌人头顶瞄准</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #2c1810;
+            color: #f4e4bc;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #8b4513;
+            background: linear-gradient(135deg, #3d2817 0%, #2c1810 100%);
+            margin: 20px auto;
+        }
+        
+        .character {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .player {
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            border: 2px solid #5ba0f2;
+            left: 100px;
+            top: 400px;
+        }
+        
+        .enemy {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            border: 2px solid #f56565;
+            right: 100px;
+            top: 400px;
+        }
+        
+        .enemy.hit .character-body {
+            animation: enemyHitShake 0.6s ease-in-out, enemyHitFlash 0.6s ease-in-out;
+        }
+        
+        @keyframes enemyHitShake {
+            0% { transform: scale(1) translateX(0) translateY(0); }
+            10% { transform: scale(1.1) translateX(-8px) translateY(-3px); }
+            20% { transform: scale(1.05) translateX(8px) translateY(3px); }
+            30% { transform: scale(1.1) translateX(-6px) translateY(-2px); }
+            40% { transform: scale(1.05) translateX(6px) translateY(2px); }
+            50% { transform: scale(1.1) translateX(-4px) translateY(-1px); }
+            60% { transform: scale(1.05) translateX(4px) translateY(1px); }
+            70% { transform: scale(1.1) translateX(-2px) translateY(-1px); }
+            80% { transform: scale(1.05) translateX(2px) translateY(1px); }
+            90% { transform: scale(1.02) translateX(-1px) translateY(0); }
+            100% { transform: scale(1) translateX(0) translateY(0); }
+        }
+        
+        @keyframes enemyHitFlash {
+            0% { 
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                filter: brightness(1) saturate(1);
+            }
+            15% { 
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                filter: brightness(1.5) saturate(0.5);
+            }
+            30% { 
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                filter: brightness(1) saturate(1);
+            }
+            45% { 
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                filter: brightness(1.3) saturate(0.7);
+            }
+            60% { 
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                filter: brightness(1) saturate(1);
+            }
+            75% { 
+                background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                filter: brightness(1.2) saturate(0.8);
+            }
+            90% { 
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                filter: brightness(1) saturate(1);
+            }
+            100% { 
+                background: linear-gradient(145deg, #e74c3c, #c0392b);
+                filter: brightness(1) saturate(1);
+            }
+        }
+        
+        .enemy-collision-box {
+            position: absolute;
+            border: 2px dashed #ff6b00;
+            background: rgba(255, 107, 0, 0.1);
+            right: 100px;
+            top: 400px;
+            width: 180px;
+            height: 240px;
+            pointer-events: none;
+        }
+        
+        .enemy-head-target {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ffd700;
+            border: 2px solid #ff6b00;
+            border-radius: 50%;
+            right: 190px; /* 敌人中心 - 10px */
+            top: 280px;   /* 敌人头顶位置 */
+            pointer-events: none;
+            animation: pulse 1s infinite;
+        }
+        
+        .trajectory-limit-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #00ff00;
+            right: 0;
+            top: 400px; /* 敌人中心线位置 */
+            pointer-events: none;
+            opacity: 0.7;
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 0.7; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .projectile {
+            position: absolute;
+            width: 20px;
+            height: 60px;
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            border: 2px solid #ff6b00;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .projectile-fragment {
+            position: absolute;
+            background: linear-gradient(45deg, #ff8c00, #ff6b00);
+            border: 1px solid #ff4500;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.6);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity 0.1s ease;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .test-button {
+            background: linear-gradient(145deg, #8b4513, #654321);
+            border: 2px solid #a0522d;
+            color: #f4e4bc;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-button:hover {
+            background: linear-gradient(145deg, #a0522d, #8b4513);
+            transform: translateY(-2px);
+        }
+        
+        .info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>投射物测试 - 敌人头顶瞄准</h1>
+    
+    <div class="info">
+        <h3>测试说明：</h3>
+        <ul>
+            <li>蓝色方块：玩家位置</li>
+            <li>红色方块：敌人位置</li>
+            <li>橙色虚线框：敌人碰撞体积（180x240px）</li>
+            <li>金色圆点：敌人头顶目标点（应该被瞄准的位置）</li>
+            <li>绿色闪烁线：轨迹限制线（投射物不会低于此线）</li>
+            <li>点击"发射投射物"按钮测试瞄准效果</li>
+        </ul>
+    </div>
+    
+    <div class="controls">
+        <button class="test-button" onclick="fireProjectile()">发射投射物</button>
+        <button class="test-button" onclick="clearProjectiles()">清除投射物</button>
+        <button class="test-button" onclick="testEnemyHit()">测试敌人受击</button>
+        <button class="test-button" onclick="toggleDebug()">切换调试信息</button>
+        
+        <div style="margin-top: 10px; border-top: 1px solid #8b4513; padding-top: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #f4e4bc;">尺寸调整</h4>
+            <button class="test-button" onclick="setSmallSize()">小尺寸</button>
+            <button class="test-button" onclick="setMediumSize()">中等尺寸</button>
+            <button class="test-button" onclick="setLargeSize()">大尺寸</button>
+            <button class="test-button" onclick="setXLargeSize()">超大尺寸</button>
+            <button class="test-button" onclick="resetToDefaultSize()">重置默认</button>
+        </div>
+        
+        <div style="margin-top: 10px; border-top: 1px solid #8b4513; padding-top: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #f4e4bc;">自定义尺寸</h4>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <label style="color: #f4e4bc;">投射物:</label>
+                <input type="number" id="projectileWidth" placeholder="宽度" value="24" style="width: 60px; padding: 2px;">
+                <input type="number" id="projectileHeight" placeholder="高度" value="12" style="width: 60px; padding: 2px;">
+                <button class="test-button" onclick="setCustomProjectileSize()">应用</button>
+                
+                <label style="color: #f4e4bc; margin-left: 10px;">分裂物:</label>
+                <input type="number" id="fragmentSize" placeholder="尺寸" value="12" style="width: 60px; padding: 2px;">
+                <button class="test-button" onclick="setCustomFragmentSize()">应用</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-container" id="testContainer">
+        <div class="character player">
+            <div class="character-body">玩家</div>
+        </div>
+        <div class="character enemy">
+            <div class="character-body">敌人</div>
+        </div>
+        <div class="enemy-collision-box"></div>
+        <div class="enemy-head-target"></div>
+        <div class="trajectory-limit-line"></div>
+    </div>
+    
+    <div class="info">
+        <h3>调试信息：</h3>
+        <div id="debugInfo">点击"发射投射物"查看调试信息</div>
+    </div>
+
+    <script>
+        let debugMode = false;
+        let projectileCount = 0;
+        
+        // 模拟碰撞系统配置
+        const collisionConfig = {
+            player: { width: 120, height: 160, offsetX: 0, offsetY: 0 },
+            enemy: { width: 180, height: 240, offsetX: 0, offsetY: 0 }
+        };
+        
+        // 获取角色位置
+        function getCharacterPosition(characterType) {
+            const element = document.querySelector(`.${characterType}`);
+            const rect = element.getBoundingClientRect();
+            const container = document.getElementById('testContainer');
+            const containerRect = container.getBoundingClientRect();
+            
+            const config = collisionConfig[characterType];
+            return {
+                x: rect.left - containerRect.left + config.width / 2,
+                y: rect.top - containerRect.top + config.height / 2
+            };
+        }
+        
+        // 计算敌人头顶位置
+        function getEnemyHeadTarget() {
+            const enemyCenter = getCharacterPosition('enemy');
+            const enemyConfig = collisionConfig.enemy;
+            
+            return {
+                x: enemyCenter.x,
+                y: enemyCenter.y - enemyConfig.height / 2
+            };
+        }
+        
+        // 发射投射物
+        function fireProjectile() {
+            const playerCenter = getCharacterPosition('player');
+            const enemyHeadTarget = getEnemyHeadTarget();
+            
+            // 计算角度
+            const dx = enemyHeadTarget.x - playerCenter.x;
+            const dy = enemyHeadTarget.y - playerCenter.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // 创建投射物
+            const projectile = document.createElement('div');
+            projectile.className = 'projectile';
+            projectile.style.left = (playerCenter.x - 10) + 'px';
+            projectile.style.top = (playerCenter.y - 30) + 'px';
+            projectile.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+            
+            document.getElementById('testContainer').appendChild(projectile);
+            projectileCount++;
+            
+            // 动画移动
+            const speed = 5;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+            
+            let x = playerCenter.x - 10;
+            let y = playerCenter.y - 30;
+            
+            const moveProjectile = () => {
+                // 应用轨迹限制
+                const enemyCenter = getCharacterPosition('enemy');
+                let projectileCenterY = y + 30; // 投射物中心Y坐标
+                
+                // 如果投射物中心低于敌人中心线，限制其Y位置
+                if (projectileCenterY > enemyCenter.y) {
+                    y = enemyCenter.y - 30; // 限制在敌人中心线以上
+                    vy = 0; // 停止向下运动
+                    projectileCenterY = y + 30; // 更新投射物中心Y坐标
+                }
+                
+                // 应用重力（只在投射物中心高于敌人中心线时）
+                if (projectileCenterY < enemyCenter.y) {
+                    vy += 0.1; // 应用重力
+                }
+                
+                x += vx;
+                y += vy;
+                projectile.style.left = x + 'px';
+                projectile.style.top = y + 'px';
+                
+                // 检查是否击中敌人头顶区域
+                const enemyConfig = collisionConfig.enemy;
+                const enemyLeft = enemyCenter.x - enemyConfig.width / 2;
+                const enemyRight = enemyCenter.x + enemyConfig.width / 2;
+                const enemyTop = enemyCenter.y - enemyConfig.height / 2;
+                const enemyBottom = enemyCenter.y + enemyConfig.height / 2;
+                
+                const projectileCenterX = x + 10;
+                projectileCenterY = y + 30; // 重新计算投射物中心Y坐标
+                
+                const isHit = projectileCenterX >= enemyLeft - 30 &&
+                             projectileCenterX <= enemyRight + 30 &&
+                             projectileCenterY >= enemyTop - 50 &&
+                             projectileCenterY <= enemyBottom + 30;
+                
+                if (isHit) {
+                    projectile.style.background = 'radial-gradient(circle, #ff0000, #ff6b00)';
+                    projectile.style.animation = 'pulse 0.5s ease-out';
+                    
+                    // 触发敌人受击效果
+                    const enemyElement = document.querySelector('.enemy');
+                    if (enemyElement) {
+                        enemyElement.classList.add('hit');
+                        setTimeout(() => {
+                            enemyElement.classList.remove('hit');
+                        }, 600);
+                    }
+                    
+                    // 创建分裂效果
+                    createFragments(x + 10, y + 30);
+                    
+                    setTimeout(() => {
+                        if (projectile.parentNode) {
+                            projectile.parentNode.removeChild(projectile);
+                        }
+                    }, 500);
+                    logDebug(`投射物 ${projectileCount} 击中敌人头顶区域！敌人受击效果已触发，创建分裂效果`);
+                    return;
+                }
+                
+                // 检查是否超出边界
+                if (x < -50 || x > 850 || y < -50 || y > 650) {
+                    if (projectile.parentNode) {
+                        projectile.parentNode.removeChild(projectile);
+                    }
+                    logDebug(`投射物 ${projectileCount} 超出边界`);
+                    return;
+                }
+                
+                requestAnimationFrame(moveProjectile);
+            };
+            
+            moveProjectile();
+            
+            // 输出调试信息
+            if (debugMode) {
+                logDebug(`发射投射物 ${projectileCount}:`);
+                logDebug(`  玩家位置: (${playerCenter.x.toFixed(1)}, ${playerCenter.y.toFixed(1)})`);
+                logDebug(`  敌人头顶目标: (${enemyHeadTarget.x.toFixed(1)}, ${enemyHeadTarget.y.toFixed(1)})`);
+                logDebug(`  角度: ${(angle * 180 / Math.PI).toFixed(1)}°`);
+                logDebug(`  速度: (${vx.toFixed(2)}, ${vy.toFixed(2)})`);
+            }
+        }
+        
+        // 清除所有投射物
+        function clearProjectiles() {
+            const projectiles = document.querySelectorAll('.projectile');
+            projectiles.forEach(p => p.remove());
+            projectileCount = 0;
+            logDebug('已清除所有投射物');
+        }
+        
+        // 切换调试模式
+        function toggleDebug() {
+            debugMode = !debugMode;
+            logDebug(`调试模式: ${debugMode ? '开启' : '关闭'}`);
+        }
+        
+        // 测试敌人受击效果
+        function testEnemyHit() {
+            const enemyElement = document.querySelector('.enemy');
+            if (enemyElement) {
+                enemyElement.classList.add('hit');
+                setTimeout(() => {
+                    enemyElement.classList.remove('hit');
+                }, 600);
+                logDebug('手动触发敌人受击效果');
+            }
+        }
+        
+        // 创建分裂碎片
+        function createFragments(x, y) {
+            const fragmentCount = 4;
+            const fragmentSize = 8;
+            const fragmentSpeed = 3;
+            const fragmentLifetime = 6000;
+            
+            for (let i = 0; i < fragmentCount; i++) {
+                // 计算随机角度
+                const angle = (Math.PI * 2 * i) / fragmentCount + (Math.random() - 0.5) * 0.5;
+                
+                // 计算随机速度
+                const speed = fragmentSpeed + Math.random() * 2;
+                
+                const fragment = {
+                    element: null,
+                    x: x - fragmentSize / 2,
+                    y: y - fragmentSize / 2,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    created: Date.now(),
+                    lifetime: fragmentLifetime,
+                    size: fragmentSize
+                };
+                
+                // 创建碎片DOM元素
+                const element = document.createElement('div');
+                element.className = 'projectile-fragment';
+                element.style.left = fragment.x + 'px';
+                element.style.top = fragment.y + 'px';
+                element.style.width = fragment.size + 'px';
+                element.style.height = fragment.size + 'px';
+                
+                document.getElementById('testContainer').appendChild(element);
+                fragment.element = element;
+                
+                // 动画移动碎片
+                animateFragment(fragment);
+            }
+            
+            logDebug(`创建了 ${fragmentCount} 个碎片`);
+        }
+        
+        // 动画移动碎片
+        function animateFragment(fragment) {
+            const moveFragment = () => {
+                const currentTime = Date.now();
+                
+                // 检查生存时间
+                if (currentTime - fragment.created > fragment.lifetime) {
+                    if (fragment.element && fragment.element.parentNode) {
+                        fragment.element.parentNode.removeChild(fragment.element);
+                    }
+                    return;
+                }
+                
+                // 应用重力
+                fragment.vy += 0.3;
+                
+                // 更新位置
+                fragment.x += fragment.vx;
+                fragment.y += fragment.vy;
+                
+                // 更新DOM元素位置
+                if (fragment.element) {
+                    fragment.element.style.left = fragment.x + 'px';
+                    fragment.element.style.top = fragment.y + 'px';
+                    
+                    // 根据生存时间调整透明度
+                    const lifeProgress = (currentTime - fragment.created) / fragment.lifetime;
+                    const opacity = Math.max(0.1, 0.8 - lifeProgress * 0.7);
+                    fragment.element.style.opacity = opacity;
+                }
+                
+                // 检查是否超出边界
+                if (fragment.x < -50 || fragment.x > 850 || fragment.y < -50 || fragment.y > 650) {
+                    if (fragment.element && fragment.element.parentNode) {
+                        fragment.element.parentNode.removeChild(fragment.element);
+                    }
+                    return;
+                }
+                
+                requestAnimationFrame(moveFragment);
+            };
+            
+            moveFragment();
+        }
+        
+        // 输出调试信息
+        function logDebug(message) {
+            const debugDiv = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+        
+        // 尺寸调整函数
+        function setSmallSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                window.gameModules.projectileSystem.setSmallSize();
+                logDebug('已设置为小尺寸');
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function setMediumSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                window.gameModules.projectileSystem.setMediumSize();
+                logDebug('已设置为中等尺寸');
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function setLargeSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                window.gameModules.projectileSystem.setLargeSize();
+                logDebug('已设置为大尺寸');
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function setXLargeSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                window.gameModules.projectileSystem.setXLargeSize();
+                logDebug('已设置为超大尺寸');
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function resetToDefaultSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                window.gameModules.projectileSystem.resetToDefaultSize();
+                logDebug('已重置为默认尺寸');
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function setCustomProjectileSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                const width = parseInt(document.getElementById('projectileWidth').value);
+                const height = parseInt(document.getElementById('projectileHeight').value);
+                if (width > 0 && height > 0) {
+                    window.gameModules.projectileSystem.setProjectileSize(width, height);
+                    logDebug(`投射物尺寸已设置为: ${width}x${height}px`);
+                } else {
+                    logDebug('请输入有效的尺寸数值');
+                }
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        function setCustomFragmentSize() {
+            if (window.gameModules && window.gameModules.projectileSystem) {
+                const size = parseInt(document.getElementById('fragmentSize').value);
+                if (size > 0) {
+                    window.gameModules.projectileSystem.setFragmentSize(size);
+                    logDebug(`分裂物尺寸已设置为: ${size}x${size}px`);
+                } else {
+                    logDebug('请输入有效的尺寸数值');
+                }
+            } else {
+                logDebug('投射物系统未初始化');
+            }
+        }
+        
+        // 初始化
+        logDebug('投射物测试页面已加载');
+        logDebug('点击"发射投射物"按钮开始测试');
+    </script>
+</body>
+</html>
