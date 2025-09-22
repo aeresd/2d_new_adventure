@@ -44,6 +44,11 @@ class GameManager {
             this.startGame();
         });
 
+        // 监听新手教程开始事件
+        document.addEventListener('tutorialStart', (event) => {
+            this.startTutorial();
+        });
+
         // 监听返回主菜单事件
         document.addEventListener('backToMenu', (event) => {
             this.backToMainMenu();
@@ -79,6 +84,16 @@ class GameManager {
             this.handleInputSystemEvent(event.detail);
         });
 
+        // 监听玩家死亡事件
+        document.addEventListener('playerDeath', (event) => {
+            this.handlePlayerDeath();
+        });
+
+        // 监听敌人死亡事件
+        document.addEventListener('enemyDeath', (event) => {
+            this.handleEnemyDeath();
+        });
+
         // 监听窗口大小变化事件
         window.addEventListener('resize', () => {
             this.handleResize();
@@ -110,6 +125,368 @@ class GameManager {
     startGame() {
         console.log('开始游戏');
         this.switchScreen('levelSelect');
+    }
+
+    /**
+     * 开始新手教程
+     */
+    startTutorial() {
+        console.log('开始新手教程');
+        
+        // 设置新手教程队伍配置
+        this.setTutorialTeamConfig();
+        
+        // 进入新手教程关卡
+        this.enterTutorialLevel();
+    }
+
+    /**
+     * 设置新手教程队伍配置
+     */
+    setTutorialTeamConfig() {
+        // 设置新手教程专用队伍配置：弓手x2 村民x2
+        const tutorialTeamConfig = {
+            archer: 2,
+            villager: 2,
+            knight: 0
+        };
+        
+        // 更新村庄堡垒弹窗的队伍配置
+        if (window.villageFortressPopup) {
+            window.villageFortressPopup.setTeamConfig(tutorialTeamConfig);
+        }
+        
+        // 同步到存档系统
+        if (window.saveManager) {
+            window.saveManager.updateTeamConfig(tutorialTeamConfig);
+        }
+        
+        console.log('新手教程队伍配置已设置:', tutorialTeamConfig);
+    }
+
+    /**
+     * 进入新手教程关卡
+     */
+    enterTutorialLevel() {
+        const tutorialLevelData = {
+            name: '新手教程',
+            description: '学习游戏基本操作和战斗机制',
+            enemies: '圆头耄耋（教程）',
+            image: 'campaign/tiny_map1.png'
+        };
+        
+        // 更新游戏状态
+        this.gameState.currentLevel = 'tutorial';
+        
+        // 显示关卡场景
+        this.showLevelScene('tutorial', tutorialLevelData);
+        
+        // 设置敌人配置
+        this.setEnemyForLevel('tutorial', false);
+        
+        // 隐藏新手教程中的未知重生点
+        this.hideTutorialUnknownSpawn();
+        
+        // 隐藏新手教程中的关卡信息UI
+        this.hideTutorialLevelUI();
+        
+        // 启动新手教程流程
+        this.startTutorialFlow();
+    }
+
+    /**
+     * 启动新手教程流程
+     */
+    startTutorialFlow() {
+        // 延迟一点时间后开始教程
+        setTimeout(() => {
+            this.showTutorialPopup('boss_intro');
+        }, 1000);
+    }
+
+    /**
+     * 显示新手教程弹窗
+     * @param {string} popupType - 弹窗类型
+     */
+    showTutorialPopup(popupType) {
+        // 檢查是否在新手教程中，如果不是則不顯示教程彈窗
+        if (this.gameState.currentLevel !== 'tutorial') {
+            console.log('非新手教程狀態，跳過教程彈窗:', popupType);
+            return;
+        }
+
+        // 暂停游戏
+        const inputSystem = window.gameModules?.inputSystem;
+        if (inputSystem) {
+            inputSystem.pauseGame();
+        }
+
+        // 创建教程弹窗
+        const popup = this.createTutorialPopup(popupType);
+        document.body.appendChild(popup);
+        
+        // 显示弹窗
+        popup.style.display = 'flex';
+        
+        // 绑定点击事件
+        popup.addEventListener('click', () => {
+            this.handleTutorialPopupClick(popupType);
+            document.body.removeChild(popup);
+        });
+    }
+
+    /**
+     * 创建新手教程弹窗
+     * @param {string} popupType - 弹窗类型
+     * @returns {HTMLElement} 弹窗元素
+     */
+    createTutorialPopup(popupType) {
+        const popup = document.createElement('div');
+        popup.className = 'tutorial-popup-overlay';
+        popup.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        `;
+
+        const content = document.createElement('div');
+        content.className = 'tutorial-popup-content';
+        content.style.cssText = `
+            background: #2c3e50;
+            border: 3px solid #e74c3c;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            text-align: center;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        `;
+
+        const text = document.createElement('div');
+        text.style.cssText = `
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        `;
+
+        const continueText = document.createElement('div');
+        continueText.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 12px;
+            color: #bdc3c7;
+            font-style: italic;
+        `;
+        continueText.textContent = '点击鼠标继续';
+
+        // 根据弹窗类型设置文本内容
+        switch (popupType) {
+            case 'boss_intro':
+                text.textContent = '圆头耄耋：哦豁? 又有新来的想要打败我的楞头青吗？有趣~\n\n嘶哈!吃我一击!哈!';
+                break;
+            case 'damage_warning':
+                text.textContent = '请小心，敌人的任何攻击都可能让你的队伍损失队友，当敌人血条下方的倒计时结束时就会发动一次攻击，请当心';
+                break;
+            case 'attack_instruction':
+                text.textContent = '请按照下方的方向指引输入对应的WASD／上下左右的方向键予以还击，每完整的输入一次键位序列将可以发动一次攻击，连续成功输入一定次数后下一次攻击将可以打断敌人的攻击';
+                break;
+            case 'player_defeat':
+                text.textContent = '圆头耄耋：切，算你走运';
+                break;
+            case 'enemy_defeat':
+                text.textContent = '圆头耄耋：哈！不可能，我竟然输了，但这只是我的分身。我会在最终之地等你！哈！';
+                break;
+            case 'tutorial_complete':
+                text.textContent = '村庄突袭事件暂时告一段落了，但是大魔王圆头耄耋的威胁还没有消失，请勇者再次打败他。\n\n每次打败敌人都有几率可以解救友军，你可以逐步的解放周边的地区来积攒力量\n\n亦或是前往城堡进行斩首行动';
+                break;
+        }
+
+        content.appendChild(text);
+        content.appendChild(continueText);
+        popup.appendChild(content);
+
+        return popup;
+    }
+
+    /**
+     * 处理新手教程弹窗点击
+     * @param {string} popupType - 弹窗类型
+     */
+    handleTutorialPopupClick(popupType) {
+        switch (popupType) {
+            case 'boss_intro':
+                // Boss介绍后，强制敌人攻击
+                this.forceEnemyAttack();
+                break;
+            case 'damage_warning':
+                // 伤害警告后，显示攻击说明
+                setTimeout(() => {
+                    this.showTutorialPopup('attack_instruction');
+                }, 500);
+                break;
+            case 'attack_instruction':
+                // 攻击说明后，直接开始游戏
+                this.startTutorialGame();
+                break;
+            case 'player_defeat':
+            case 'enemy_defeat':
+                // 战斗结束后，显示完成弹窗
+                setTimeout(() => {
+                    this.showTutorialPopup('tutorial_complete');
+                }, 500);
+                break;
+            case 'tutorial_complete':
+                // 教程完成，返回关卡选择
+                this.completeTutorial();
+                break;
+        }
+    }
+
+    /**
+     * 强制敌人攻击
+     */
+    forceEnemyAttack() {
+        const inputSystem = window.gameModules?.inputSystem;
+        if (inputSystem) {
+            // 播放敌人攻击动画
+            inputSystem.setEnemyState('attacking');
+            
+            // 延迟一点时间后对玩家造成伤害，让攻击动画先播放
+            setTimeout(() => {
+                inputSystem.damagePlayer(10);
+            }, 500);
+            
+            // 显示伤害警告弹窗
+            setTimeout(() => {
+                this.showTutorialPopup('damage_warning');
+            }, 1500);
+        }
+    }
+
+    /**
+     * 恢复教程游戏
+     */
+    resumeTutorialGame() {
+        const inputSystem = window.gameModules?.inputSystem;
+        if (inputSystem) {
+            inputSystem.resumeGame();
+        }
+    }
+
+    /**
+     * 开始新手教程游戏
+     */
+    startTutorialGame() {
+        // 只有在新手教程中才隐藏关卡信息UI
+        if (this.gameState.currentLevel === 'tutorial') {
+            this.hideLevelUI();
+        }
+        
+        // 恢复游戏系统
+        const inputSystem = window.gameModules?.inputSystem;
+        if (inputSystem) {
+            // 恢复游戏系统
+            inputSystem.resumeGame();
+            // 延迟一点时间后重新开始
+            setTimeout(() => {
+                inputSystem.startNewSequence();
+                console.log('新手教程游戏已开始');
+            }, 100);
+        }
+    }
+
+    /**
+     * 完成新手教程
+     */
+    completeTutorial() {
+        // 清除教程狀態
+        this.gameState.currentLevel = null;
+        this.gameState.isInTutorial = false;
+        
+        // 返回关卡选择界面
+        this.switchScreen('levelSelect');
+        
+        // 重置队伍配置为默认值
+        this.resetTeamConfigToDefault();
+        
+        console.log('新手教程已完成，狀態已重置');
+    }
+
+    /**
+     * 重置队伍配置为默认值
+     */
+    resetTeamConfigToDefault() {
+        const defaultTeamConfig = {
+            archer: 1,
+            villager: 1,
+            knight: 1
+        };
+        
+        // 更新村庄堡垒弹窗的队伍配置
+        if (window.villageFortressPopup) {
+            window.villageFortressPopup.setTeamConfig(defaultTeamConfig);
+        }
+        
+        // 同步到存档系统
+        if (window.saveManager) {
+            window.saveManager.updateTeamConfig(defaultTeamConfig);
+        }
+        
+        console.log('队伍配置已重置为默认值:', defaultTeamConfig);
+    }
+
+    /**
+     * 处理玩家死亡
+     */
+    handlePlayerDeath() {
+        // 只有在新手教程中才显示特殊弹窗
+        if (this.gameState.currentLevel === 'tutorial') {
+            this.showTutorialPopup('player_defeat');
+        }
+    }
+
+    /**
+     * 处理敌人死亡
+     */
+    handleEnemyDeath() {
+        // 只有在新手教程中才显示特殊弹窗
+        if (this.gameState.currentLevel === 'tutorial') {
+            this.showTutorialPopup('enemy_defeat');
+        }
+    }
+
+    /**
+     * 隐藏新手教程中的未知重生点
+     */
+    hideTutorialUnknownSpawn() {
+        const inputSystem = window.gameModules?.inputSystem;
+        if (inputSystem && inputSystem.unknownSpawnElement) {
+            inputSystem.unknownSpawnElement.style.display = 'none';
+            console.log('新手教程中的未知重生点已隐藏');
+        }
+    }
+
+    /**
+     * 隐藏新手教程中的关卡信息UI
+     */
+    hideTutorialLevelUI() {
+        const levelUI = document.querySelector('.level-ui');
+        if (levelUI) {
+            levelUI.style.display = 'none';
+            console.log('新手教程中的关卡信息UI已隐藏');
+        }
     }
 
     /**
@@ -183,6 +560,11 @@ class GameManager {
         // 根据关卡设置敌人类型（但不启动游戏）
         this.setEnemyForLevel(levelId, false);
         
+        // 确保关卡信息UI显示（新手教程除外）
+        if (levelId !== 'tutorial') {
+            this.showLevelUI();
+        }
+        
         // 触发关卡场景显示事件
         const event = new CustomEvent('levelSceneShown', {
             detail: { levelId, levelData }
@@ -203,6 +585,14 @@ class GameManager {
         
         // 关卡敌人配置
         const levelEnemyConfig = {
+            'tutorial': {
+                type: 'enemy-four', // 新手教程：敌人四（猫）
+                level: 1,
+                countdownDuration: 10,
+                damage: 10,
+                health: 10,
+                respawnRange: { min: 0, max: 0 } // 新手教程：不重生
+            },
             '1': {
                 type: 'enemy-four', // 关卡1：敌人四（猫）- 村庄堡垒
                 level: 1,
@@ -372,6 +762,14 @@ class GameManager {
                 inputSystem.startNewSequence();
                 console.log('输入系统已重新启动');
             }, 100);
+        }
+        
+        // 确保投射物系统激活
+        const projectileSystem = window.gameModules?.projectileSystem;
+        if (projectileSystem) {
+            projectileSystem.setActive(true);
+            projectileSystem.resume();
+            console.log('投射物系统已激活');
         }
     }
 

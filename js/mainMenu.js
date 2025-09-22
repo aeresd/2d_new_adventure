@@ -93,14 +93,8 @@ class MainMenu {
             this.startButton.style.transform = 'scale(1)';
         }, 150);
 
-        // 检查是否有存档
-        if (window.saveManager && window.saveManager.hasSave()) {
-            // 有存档，显示覆盖确认弹窗
-            this.showOverwritePopup();
-        } else {
-            // 没有存档，直接开始新游戏
-            this.startNewGame();
-        }
+        // 直接开始新游戏，不检查存档
+        this.startNewGame();
     }
 
     /**
@@ -140,8 +134,8 @@ class MainMenu {
             window.saveManager.createNewSave();
         }
         
-        // 触发自定义事件，通知游戏管理器切换到关卡选择界面
-        const event = new CustomEvent('gameStart', {
+        // 直接进入新手教程关卡
+        const event = new CustomEvent('tutorialStart', {
             detail: { from: 'mainMenu', isContinue: false }
         });
         document.dispatchEvent(event);
@@ -187,8 +181,8 @@ class MainMenu {
      */
     updateContinueButtonVisibility() {
         if (this.continueButton) {
-            const hasSave = window.saveManager && window.saveManager.hasSave();
-            this.continueButton.style.display = hasSave ? 'block' : 'none';
+            // 始终隐藏继续游戏按钮
+            this.continueButton.style.display = 'none';
         }
     }
 

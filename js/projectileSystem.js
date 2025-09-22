@@ -47,9 +47,19 @@ class ProjectileSystem {
     bindEvents() {
         // 监听序列完成事件
         document.addEventListener('inputSystemEvent', (event) => {
+            console.log('投射物系统收到事件:', event.detail);
             if (event.detail.type === 'sequenceComplete') {
+                console.log('序列完成，准备发射投射物');
+                console.log('投射物系统状态 - isActive:', this.isActive, 'isPaused:', this.isPaused);
                 this.fireAtEnemy();
             }
+        });
+        
+        // 监听游戏开始事件，确保投射物系统激活
+        document.addEventListener('startLevel', () => {
+            console.log('游戏开始，激活投射物系统');
+            this.setActive(true);
+            this.resume();
         });
     }
     
@@ -85,7 +95,11 @@ class ProjectileSystem {
      * 向敌人发射投射物
      */
     fireAtEnemy() {
-        if (!this.isActive || this.isPaused) return;
+        console.log('fireAtEnemy 被调用，isActive:', this.isActive, 'isPaused:', this.isPaused);
+        if (!this.isActive || this.isPaused) {
+            console.log('投射物系统未激活或已暂停，无法发射');
+            return;
+        }
         
         // 检查敌人是否存在且可见
         const enemyElement = document.getElementById('enemy');

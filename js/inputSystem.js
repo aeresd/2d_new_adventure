@@ -168,14 +168,23 @@ class InputSystem {
         });
 
         // 关卡场景显示时启动输入系统
-        document.addEventListener('levelSceneShown', () => {
+        document.addEventListener('levelSceneShown', (event) => {
             this.startNewSequence();
-            // 确保未知处显示
-            this.showUnknownSpawn();
-            // 延迟再次确保未知处显示（防止时序问题）
-            setTimeout(() => {
+            
+            // 检查是否为新手教程
+            const isTutorial = event.detail && event.detail.levelId === 'tutorial';
+            
+            if (!isTutorial) {
+                // 确保未知处显示（新手教程除外）
                 this.showUnknownSpawn();
-            }, 100);
+                // 延迟再次确保未知处显示（防止时序问题）
+                setTimeout(() => {
+                    this.showUnknownSpawn();
+                }, 100);
+            } else {
+                // 新手教程中隐藏未知重生点
+                this.hideUnknownSpawn();
+            }
         });
 
         // 关卡场景隐藏时停止输入系统
@@ -502,6 +511,13 @@ class InputSystem {
         this.isPaused = true;
         this.stopTimer();
         this.stopCountdown();
+        
+        // 暂停投射物系统
+        const projectileSystem = window.gameModules?.projectileSystem;
+        if (projectileSystem) {
+            projectileSystem.pause();
+        }
+        
         console.log('游戏已暂停');
     }
 
@@ -510,6 +526,13 @@ class InputSystem {
      */
     resumeGame() {
         this.isPaused = false;
+        
+        // 恢复投射物系统
+        const projectileSystem = window.gameModules?.projectileSystem;
+        if (projectileSystem) {
+            projectileSystem.resume();
+        }
+        
         console.log('游戏已恢复');
     }
 
@@ -789,16 +812,8 @@ class InputSystem {
             const percentage = (this.playerHealth / this.playerMaxHealth) * 100;
             this.playerHealthElement.style.width = `${percentage}%`;
             
-            // 优化血量百分比显示：如果携带村民且为满血，显示100%
-            const allyCounts = this.getCurrentAllyCounts();
-            const hasVillagers = allyCounts.villager > 0;
-            const isFullHealth = this.playerHealth >= this.playerMaxHealth;
-            
-            if (hasVillagers && isFullHealth) {
-                this.playerHealthTextElement.textContent = '100%';
-            } else {
-                this.playerHealthTextElement.textContent = `${Math.round(percentage)}%`;
-            }
+            // 直接显示实际血量百分比，以进入关卡时的血量上限为准
+            this.playerHealthTextElement.textContent = `${Math.round(percentage)}%`;
             
             // 根据血量改变血条颜色
             this.playerHealthElement.classList.remove('warning', 'danger');
@@ -1244,8 +1259,9 @@ class InputSystem {
             projectileSystem.isActive = false;
         }
         
-        // 触发游戏失败事件
-        this.triggerGameOver();
+        // 触发玩家死亡事件，让游戏管理器处理
+        const deathEvent = new CustomEvent('playerDeath');
+        document.dispatchEvent(deathEvent);
     }
     
     /**
@@ -2154,8 +2170,12 @@ class InputSystem {
         // 更新碰撞检测尺寸
         this.updateEnemyCollisionSize();
         
-        // 显示未知处（新关卡开始时）
-        this.showUnknownSpawn();
+        // 显示未知处（新关卡开始时），但新手教程除外
+        if (config.level !== 'tutorial') {
+            this.showUnknownSpawn();
+        } else {
+            this.hideUnknownSpawn();
+        }
         
         // 更新友军显示状态
         this.updateAllAllyDisplay();

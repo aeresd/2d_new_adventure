@@ -96,13 +96,6 @@ class VillageFortressPopup {
     }
 
     increaseCount(member) {
-        // 检查总人数是否达到上限（12人）
-        const totalCount = this.teamCounts.archer + this.teamCounts.villager + this.teamCounts.knight;
-        if (totalCount >= 12) {
-            console.log('队伍人数已达上限（12人），无法继续增加');
-            return;
-        }
-        
         // 检查库存是否足够
         if (this.teamCounts[member] < this.inventory[member]) {
             this.teamCounts[member]++;
@@ -142,24 +135,18 @@ class VillageFortressPopup {
     }
 
     updateButtonStates() {
-        // 计算总人数
-        const totalCount = this.teamCounts.archer + this.teamCounts.villager + this.teamCounts.knight;
-        const isAtMaxCapacity = totalCount >= 12;
-        
         // 更新增加按钮的可用性
         const increaseBtns = document.querySelectorAll('.increase-btn');
         increaseBtns.forEach(btn => {
             const member = btn.getAttribute('data-member');
             const hasInventory = this.teamCounts[member] < this.inventory[member];
-            const canIncrease = hasInventory && !isAtMaxCapacity;
+            const canIncrease = hasInventory;
             
             btn.disabled = !canIncrease;
             btn.style.opacity = canIncrease ? '1' : '0.5';
             
             // 添加提示文本
-            if (isAtMaxCapacity) {
-                btn.title = '队伍人数已达上限（12人）';
-            } else if (!hasInventory) {
+            if (!hasInventory) {
                 btn.title = '库存不足';
             } else {
                 btn.title = '';

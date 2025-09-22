@@ -11,39 +11,45 @@ class LevelSelect {
         // 关卡数据配置
         this.levelData = {
             1: {
-                name: '村庄堡垒',
-                description: '一个被木栅栏围绕的宁静村庄，适合新手冒险者开始他们的旅程。',
+                name: '大本营',
+                description: '调整队伍',
                 enemies: '圆头耄耋',
+                attackInterval: '10秒',
                 image: 'map_select/tiny_map_1.png'
             },
             2: {
                 name: '森林村庄',
                 description: '隐藏在茂密森林中的神秘村庄，需要小心森林中的危险生物。',
                 enemies: '哥布林（主要）：可能掉落村民\n骷髅：可能掉落骑士\n史莱姆：可能掉落弓手\n圆头耄耋',
+                attackInterval: '10秒',
                 image: 'map_select/tiny_map_2.png'
             },
             3: {
                 name: '军事哨站',
                 description: '一个戒备森严的军事前哨，里面驻扎着训练有素的士兵。',
                 enemies: '骷髅（主要）：可能掉落骑士\n哥布林：可能掉落村民\n史莱姆：可能掉落弓手\n圆头耄耋',
+                attackInterval: '10秒',
                 image: 'map_select/tiny_map_3.png'
             },
             4: {
                 name: '长城防线',
                 description: '古老的长城防御工事，需要突破坚固的城墙和守卫。',
                 enemies: '史莱姆（主要）：可能掉落弓手\n哥布林：可能掉落村民\n骷髅：可能掉落骑士\n圆头耄耋',
+                attackInterval: '10秒',
                 image: 'map_select/tiny_map_4.png'
             },
             5: {
                 name: '石桥通道',
                 description: '横跨河流的石桥，是通往主城的必经之路，但充满了陷阱。',
                 enemies: '史莱姆（主要）：可能掉落弓手\n哥布林：可能掉落村民\n骷髅：可能掉落骑士\n圆头耄耋',
+                attackInterval: '9秒',
                 image: 'map_select/tiny_map_5.png'
             },
             6: {
                 name: '主城城堡',
                 description: '最终的目标！宏伟的城堡中隐藏着最强大的敌人和珍贵的宝藏。',
                 enemies: '哥布林：可能掉落村民\n骷髅：可能掉落骑士\n史莱姆：可能掉落弓手\n圆头耄耋（最终Boss）',
+                attackInterval: '8秒',
                 image: 'map_select/tiny_map_6.png'
             }
         };
@@ -57,6 +63,7 @@ class LevelSelect {
     init() {
         this.bindEvents();
         this.setupLevelIcons();
+        this.hideBackButton();
         console.log('关卡选择模块已初始化');
     }
 
@@ -121,9 +128,6 @@ class LevelSelect {
         }
 
         switch(event.key) {
-            case 'Escape':
-                this.onBackToMenu();
-                break;
             case '1':
             case '2':
             case '3':
@@ -261,6 +265,16 @@ class LevelSelect {
      */
     getAllLevelData() {
         return this.levelData;
+    }
+
+    /**
+     * 隐藏返回主菜单按钮
+     */
+    hideBackButton() {
+        if (this.backButton) {
+            this.backButton.style.display = 'none';
+            console.log('返回主菜单按钮已隐藏');
+        }
     }
 }
 

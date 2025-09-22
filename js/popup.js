@@ -10,6 +10,7 @@ class Popup {
         this.popupLevelName = document.getElementById('popup-level-name');
         this.popupLevelDesc = document.getElementById('popup-level-desc');
         this.popupEnemies = document.getElementById('popup-enemies');
+        this.popupAttackInterval = document.getElementById('popup-attack-interval');
         this.closeButton = document.getElementById('close-popup-btn');
         this.confirmButton = document.getElementById('confirm-level-btn');
         
@@ -117,6 +118,9 @@ class Popup {
         
         // 更新敌人信息
         this.popupEnemies.textContent = levelData.enemies || '暂无敌人信息';
+        
+        // 更新攻击间隔信息
+        this.popupAttackInterval.textContent = levelData.attackInterval || '10秒';
     }
 
 
