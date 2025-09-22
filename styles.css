@@ -1,3 +1,28 @@
+/* ===== 統一UI設計系統 ===== */
+
+/* 設計變量 */
+:root {
+    --primary-color: #8b4513;
+    --primary-light: #a0522d;
+    --primary-dark: #654321;
+    --secondary-color: #f4e4bc;
+    --secondary-light: #FFF8DC;
+    --success-color: #32cd32;
+    --success-dark: #228b22;
+    --danger-color: #ff4444;
+    --danger-dark: #cc0000;
+    --info-color: #3498db;
+    --info-dark: #2980b9;
+    --neutral-color: #666666;
+    --neutral-dark: #444444;
+    --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.4);
+    --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.5);
+    --border-radius: 10px;
+    --border-radius-large: 15px;
+    --transition: all 0.3s ease;
+}
+
 /* 全局样式重置和基础设置 */
 * {
     margin: 0;
@@ -20,7 +45,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #1a0f0a 0%, #2c1810 50%, #1a0f0a 100%);
+    background: linear-gradient(to bottom, #1a0f0a 0%, #2c1810 50%, #1a0f0a 100%);
     overflow: hidden;
 }
 
@@ -96,33 +121,33 @@ body {
     align-items: center;
 }
 
+/* 統一按鈕基礎樣式 */
 .menu-button {
-    background: linear-gradient(145deg, #8b4513, #654321);
-    border: 3px solid #a0522d;
-    color: #f4e4bc;
+    background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+    border: 3px solid var(--primary-light);
+    color: var(--secondary-color);
     font-size: 1.5rem;
     font-weight: bold;
     padding: 1rem 2rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 2px 2px 0px #654321;
+    transition: var(--transition);
+    text-shadow: 2px 2px 0px var(--primary-dark);
     letter-spacing: 0.05em;
     min-width: 200px;
     font-family: 'Courier New', monospace;
+    box-shadow: var(--shadow-light);
 }
 
 .menu-button:hover {
-    background: linear-gradient(145deg, #a0522d, #8b4513);
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-color));
     transform: translateY(-3px);
-    box-shadow: 
-        0 5px 15px rgba(0, 0, 0, 0.3),
-        0 0 20px rgba(160, 82, 45, 0.4);
+    box-shadow: var(--shadow-medium);
 }
 
 .menu-button:active {
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-light);
 }
 
 /* 关卡选择界面样式 */
@@ -254,23 +279,24 @@ body {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: linear-gradient(145deg, #8b4513, #654321);
-    border: 2px solid #a0522d;
-    color: #f4e4bc;
+    background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+    border: 2px solid var(--primary-light);
+    color: var(--secondary-color);
     font-size: 1rem;
     font-weight: bold;
     padding: 0.5rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 1px 1px 0px #654321;
+    transition: var(--transition);
+    text-shadow: 1px 1px 0px var(--primary-dark);
     font-family: 'Courier New', monospace;
+    box-shadow: var(--shadow-light);
 }
 
 .back-button:hover {
-    background: linear-gradient(145deg, #a0522d, #8b4513);
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-color));
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-medium);
 }
 
 /* 弹窗样式 */
@@ -292,15 +318,13 @@ body {
 }
 
 .popup-content {
-    background: linear-gradient(145deg, #8b4513, #654321);
-    border: 3px solid #a0522d;
-    border-radius: 15px;
+    background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+    border: 3px solid var(--primary-light);
+    border-radius: var(--border-radius-large);
     padding: 0;
     max-width: 500px;
     width: 90%;
-    box-shadow: 
-        0 0 30px rgba(0, 0, 0, 0.7),
-        inset 0 0 20px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-heavy);
     animation: popupSlideIn 0.3s ease-out;
 }
 
@@ -316,26 +340,26 @@ body {
 }
 
 .popup-header {
-    background: linear-gradient(145deg, #a0522d, #8b4513);
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-color));
     padding: 1rem;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #654321;
+    border-bottom: 2px solid var(--primary-dark);
 }
 
 .popup-header h2 {
-    color: #f4e4bc;
+    color: var(--secondary-color);
     font-size: 1.5rem;
-    text-shadow: 2px 2px 0px #654321;
+    text-shadow: 2px 2px 0px var(--primary-dark);
     margin: 0;
 }
 
 .close-btn {
     background: none;
     border: none;
-    color: #f4e4bc;
+    color: var(--secondary-color);
     font-size: 2rem;
     cursor: pointer;
     padding: 0;
@@ -345,7 +369,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.3s ease;
+    transition: var(--transition);
 }
 
 .close-btn:hover {
@@ -432,6 +456,19 @@ body {
     line-height: 1.4;
 }
 
+.attack-interval-value {
+    color: #ff6b35;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: rgba(255, 107, 53, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 5px;
+    border: 1px solid #ff6b35;
+    text-align: center;
+    min-width: 60px;
+    display: inline-block;
+}
+
 .popup-footer {
     padding: 1rem;
     border-top: 2px solid #654321;
@@ -500,17 +537,27 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 200%; /* 双倍宽度用于无缝循环 */
+    width: 100%; /* 限制在畫布範圍內 */
     height: 100%;
     z-index: 0; /* 最低层级 */
     overflow: hidden;
     display: none; /* 默认隐藏 */
 }
 
+/* 天空背景滾動容器 */
+.sky-scroll-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%; /* 雙倍寬度用於無縫循環 */
+    height: 100%;
+    animation: skyScroll 20s linear infinite;
+}
+
 .sky-bg-image {
     position: absolute;
     top: 0;
-    width: 50%; /* 实际图片宽度为容器的一半 */
+    width: 50%; /* 每張圖片佔容器的一半寬度 */
     height: 100%;
     object-fit: cover;
     image-rendering: pixelated;
@@ -520,12 +567,10 @@ body {
 
 .sky-bg-1 {
     left: 0;
-    animation: skyScroll 30s linear infinite; /* 30秒循环滚动 */
 }
 
 .sky-bg-2 {
-    left: 50%;
-    animation: skyScroll 30s linear infinite; /* 30秒循环滚动 */
+    left: 50%; /* 第二張圖片從50%位置開始 */
 }
 
 /* 天空背景滚动动画 */
@@ -534,7 +579,7 @@ body {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(-100%);
+        transform: translateX(-50%); /* 移動一半寬度，讓第二張圖片接上 */
     }
 }
 
@@ -2949,23 +2994,24 @@ body {
 }
 
 .start-button {
-    background: linear-gradient(145deg, #228b22, #006400);
-    border: 2px solid #32cd32;
-    color: #f4e4bc;
+    background: linear-gradient(145deg, var(--success-color), var(--success-dark));
+    border: 2px solid #90ee90;
+    color: var(--secondary-color);
     font-size: 1.2rem;
     font-weight: bold;
     padding: 1rem 2rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-shadow: 1px 1px 0px #006400;
+    transition: var(--transition);
+    text-shadow: 1px 1px 0px var(--success-dark);
     font-family: 'Courier New', monospace;
+    box-shadow: var(--shadow-light);
 }
 
 .start-button:hover {
-    background: linear-gradient(145deg, #32cd32, #228b22);
+    background: linear-gradient(145deg, #90ee90, var(--success-color));
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-medium);
 }
 
 .start-button:active {
@@ -3411,12 +3457,12 @@ body {
 }
 
 .pause-menu-content {
-    background: linear-gradient(135deg, #2c3e50, #34495e);
-    border: 3px solid #3498db;
-    border-radius: 15px;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    border: 3px solid var(--primary-light);
+    border-radius: var(--border-radius-large);
     padding: 40px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-heavy);
     animation: pauseMenuSlideIn 0.3s ease-out;
 }
 
@@ -3432,7 +3478,7 @@ body {
 }
 
 .pause-menu-content h2 {
-    color: #ecf0f1;
+    color: var(--secondary-color);
     font-size: 2.5em;
     margin-bottom: 30px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -3448,35 +3494,38 @@ body {
     padding: 15px 30px;
     font-size: 1.2em;
     font-weight: bold;
-    border: none;
-    border-radius: 8px;
+    border: 2px solid;
+    border-radius: var(--border-radius);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     min-width: 200px;
+    font-family: 'Courier New', monospace;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-light);
 }
 
 .pause-menu-button.resume {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    background: linear-gradient(135deg, var(--success-color), var(--success-dark));
     color: white;
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    border-color: #90ee90;
 }
 
 .pause-menu-button.resume:hover {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    background: linear-gradient(135deg, #90ee90, var(--success-color));
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+    box-shadow: var(--shadow-medium);
 }
 
 .pause-menu-button.back {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    background: linear-gradient(135deg, var(--danger-color), var(--danger-dark));
     color: white;
-    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    border-color: #ff6666;
 }
 
 .pause-menu-button.back:hover {
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    background: linear-gradient(135deg, #ff6666, var(--danger-color));
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+    box-shadow: var(--shadow-medium);
 }
 
 .pause-menu-button:active {

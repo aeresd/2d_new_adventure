@@ -92,6 +92,10 @@
                                 <span class="stat-label">可能出现敌人:</span>
                                 <div id="popup-enemies" class="enemies-list">敌人信息</div>
                             </div>
+                            <div class="stat-item attack-interval-info">
+                                <span class="stat-label">敌人攻击间隔:</span>
+                                <div id="popup-attack-interval" class="attack-interval-value">10秒</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,8 +120,10 @@
                 
                 <!-- 天空背景层 -->
                 <div id="sky-background" class="sky-background">
-                    <img src="campaign/tiny_map4_sky.png" alt="天空背景1" class="sky-bg-image sky-bg-1">
-                    <img src="campaign/tiny_map4_sky.png" alt="天空背景2" class="sky-bg-image sky-bg-2">
+                    <div class="sky-scroll-container">
+                        <img src="campaign/tiny_map4_sky.png" alt="天空背景1" class="sky-bg-image sky-bg-1">
+                        <img src="campaign/tiny_map4_sky.png" alt="天空背景2" class="sky-bg-image sky-bg-2">
+                    </div>
                 </div>
                 
                 <!-- 地面线条 -->
@@ -280,7 +286,7 @@
     <div id="village-fortress-popup" class="popup-overlay">
         <div class="village-fortress-content">
             <div class="village-fortress-header">
-                <h2>村庄堡垒 - 队伍编辑器</h2>
+                <h2>大本营 - 调整队伍</h2>
                 <button id="close-village-fortress-btn" class="close-button">×</button>
             </div>
             <div class="village-fortress-body">
