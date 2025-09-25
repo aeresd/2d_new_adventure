@@ -88,7 +88,10 @@ body {
 
 /* 主界面样式 */
 #main-menu {
-    background: linear-gradient(135deg, #3d2817 0%, #2c1810 50%, #1a0f0a 100%);
+    background-image: url('Tiny_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .menu-container {
